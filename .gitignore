@@ -1,0 +1,15 @@
+# Backend
+target/
+*.jar
+*.iml
+.idea/
+*.iws
+*.ipr
+application.yaml
+
+# Frontend
+node_modules/
+dist/
+.angular/
+npm-debug.log
+yarn-error.log
