@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 public class HabitLog {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long habit_log_id;
+    private Long habitLogId;
 
     private LocalDateTime dateCompleted;
 
