@@ -1,5 +1,6 @@
 package com.franmowat.habittracker.entities;
 
+import com.franmowat.habittracker.dataTypes.FrequencyUnit;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -15,7 +16,15 @@ public class Habit {
 
     private String name;
     private String description;
-    private String frequency;
+
+    @Enumerated(EnumType.STRING)
+    private FrequencyUnit frequencyUnit;
+
+    private int frequencyInterval;
+
+    @Column(columnDefinition = "jsonb")
+    private String frequencyMetadata;
+
     private LocalDateTime createdAt;
 
     @ManyToOne
