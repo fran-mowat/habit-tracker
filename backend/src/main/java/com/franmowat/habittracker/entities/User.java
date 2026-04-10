@@ -1,4 +1,4 @@
-package com.franmowat.habittracker.entity;
+package com.franmowat.habittracker.entities;
 
 import jakarta.persistence.*;
 import lombok.Data;
