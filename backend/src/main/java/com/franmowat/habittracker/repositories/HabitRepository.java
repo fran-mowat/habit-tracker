@@ -3,4 +3,9 @@ package com.franmowat.habittracker.repositories;
 import com.franmowat.habittracker.entities.Habit;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface HabitRepository extends JpaRepository<Habit, Long> { }
+import java.util.List;
+
+public interface HabitRepository extends JpaRepository<Habit, Long> {
+    List<Habit> findByUser_UserId(Long userId);
+    Boolean existsByUser_UserIdAndName(Long userId, String habitName);
+}
