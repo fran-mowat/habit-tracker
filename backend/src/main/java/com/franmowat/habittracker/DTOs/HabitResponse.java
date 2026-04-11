@@ -1,9 +1,11 @@
 package com.franmowat.habittracker.DTOs;
 
 import com.franmowat.habittracker.dataTypes.FrequencyUnit;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 
+@Data
 public class HabitResponse {
     private Long habitId;
     private String name;

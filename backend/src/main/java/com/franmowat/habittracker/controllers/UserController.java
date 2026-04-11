@@ -1,8 +1,9 @@
 package com.franmowat.habittracker.controllers;
 
-import com.franmowat.habittracker.entities.Habit;
-import com.franmowat.habittracker.entities.HabitLog;
-import com.franmowat.habittracker.entities.User;
+import com.franmowat.habittracker.DTOs.HabitLogResponse;
+import com.franmowat.habittracker.DTOs.HabitResponse;
+import com.franmowat.habittracker.DTOs.UserRequest;
+import com.franmowat.habittracker.DTOs.UserResponse;
 import com.franmowat.habittracker.services.HabitLogService;
 import com.franmowat.habittracker.services.HabitService;
 import com.franmowat.habittracker.services.UserService;
@@ -24,34 +25,33 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    public User getUserById(@PathVariable Long id){
-        return userService.getUserById(id);
+    public UserResponse getUserById(@PathVariable Long id){
+        return userService.getUserByIdResponse(id);
     }
 
     @GetMapping("/email/{email}")
-    public User getUserByEmail(@PathVariable String email){
+    public UserResponse getUserByEmail(@PathVariable String email){
         return userService.getUserByEmail(email);
     }
 
     @GetMapping("/{userId}/habits")
-    public List<Habit> getHabitsByUserId(@PathVariable Long userId){
+    public List<HabitResponse> getHabitsByUserId(@PathVariable Long userId){
         return habitService.getHabitsByUserId(userId);
     }
 
     @GetMapping("/{userId}/habit-logs")
-    public List<HabitLog> getHabitLogsByUserId(@PathVariable Long userId){
+    public List<HabitLogResponse> getHabitLogsByUserId(@PathVariable Long userId){
         return habitLogService.getHabitLogsByUserId(userId);
     }
 
     @PostMapping
-    public User createUser(@RequestBody User user){
-        return userService.createUser(user);
+    public UserResponse createUser(@RequestBody UserRequest userRequest){
+        return userService.createUser(userRequest);
     }
 
     @PutMapping("/{id}")
-    public User updateUser(@PathVariable Long id, @RequestBody User user){
-        user.setUserId(id);
-        return userService.updateUser(user);
+    public UserResponse updateUser(@PathVariable Long id, @RequestBody UserRequest userRequest){
+        return userService.updateUser(id, userRequest);
     }
 
     @DeleteMapping("/{id}")

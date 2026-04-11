@@ -1,9 +1,12 @@
 package com.franmowat.habittracker.services;
 
+import com.franmowat.habittracker.DTOs.HabitRequest;
+import com.franmowat.habittracker.DTOs.HabitResponse;
 import com.franmowat.habittracker.dataTypes.FrequencyUnit;
 import com.franmowat.habittracker.entities.Habit;
 import com.franmowat.habittracker.exceptions.DuplicateResourceException;
 import com.franmowat.habittracker.exceptions.HabitNotFoundException;
+import com.franmowat.habittracker.mappers.HabitMapper;
 import com.franmowat.habittracker.repositories.HabitRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -13,9 +16,11 @@ import java.util.List;
 @Service
 public class HabitService {
     private final HabitRepository habitRepository;
+    private final HabitMapper habitMapper;
 
-    public HabitService(HabitRepository habitRepository){
+    public HabitService(HabitRepository habitRepository, HabitMapper habitMapper){
         this.habitRepository = habitRepository;
+        this.habitMapper = habitMapper;
     }
 
     public Habit getHabitById(Long id){
@@ -23,12 +28,20 @@ public class HabitService {
                 .orElseThrow(() -> new HabitNotFoundException("Habit not found with id " + id));
     }
 
-    public List<Habit> getHabitsByUserId(Long id){
-        return habitRepository.findByUser_UserId(id);
+    public HabitResponse getHabitByIdResponse(Long id){
+        Habit habit = getHabitById(id);
+        return habitMapper.toResponse(habit);
+    }
+
+    public List<HabitResponse> getHabitsByUserId(Long id){
+        List<Habit> habits = habitRepository.findByUser_UserId(id);
+        return habitMapper.toResponseList(habits);
     }
 
     @Transactional
-    public Habit createHabit(Habit habit){
+    public HabitResponse createHabit(HabitRequest habitRequest){
+        Habit habit = habitMapper.toEntity(habitRequest);
+
         String habitName = habit.getName();
         FrequencyUnit frequencyUnit = habit.getFrequencyUnit();
         int frequencyInterval = habit.getFrequencyInterval();
@@ -50,12 +63,15 @@ public class HabitService {
             throw new IllegalArgumentException("Frequency interval field cannot be less than 1");
         }
 
-        return habitRepository.save(habit);
+        Habit saved = habitRepository.save(habit);
+        return habitMapper.toResponse(saved);
     }
 
     @Transactional
-    public Habit updateHabit(Habit updatedHabit){
-        Habit existingHabit = getHabitById(updatedHabit.getHabitId());
+    public HabitResponse updateHabit(Long id, HabitRequest updatedHabitRequest){
+        Habit updatedHabit = habitMapper.toEntity(updatedHabitRequest);
+
+        Habit existingHabit = getHabitById(id);
 
         String habitName = updatedHabit.getName();
         FrequencyUnit frequencyUnit = updatedHabit.getFrequencyUnit();
@@ -85,7 +101,8 @@ public class HabitService {
         existingHabit.setFrequencyInterval(frequencyInterval);
         existingHabit.setFrequencyMetadata(updatedHabit.getFrequencyMetadata());
 
-        return habitRepository.save(existingHabit);
+        Habit saved = habitRepository.save(existingHabit);
+        return habitMapper.toResponse(saved);
     }
 
     @Transactional

@@ -1,6 +1,6 @@
 package com.franmowat.habittracker.controllers;
 
-import com.franmowat.habittracker.entities.HabitLog;
+import com.franmowat.habittracker.DTOs.HabitLogResponse;
 import com.franmowat.habittracker.services.HabitLogService;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,12 +17,12 @@ public class HabitLogController {
     }
 
     @GetMapping("/{id}")
-    public HabitLog getHabitLog(@PathVariable Long id){
-        return habitLogService.getHabitLogById(id);
+    public HabitLogResponse getHabitLog(@PathVariable Long id){
+        return habitLogService.getHabitLogByIdResponse(id);
     }
 
     @GetMapping
-    public List<HabitLog> getHabitLogsByDate(@RequestParam LocalDate date){
+    public List<HabitLogResponse> getHabitLogsByDate(@RequestParam LocalDate date){
         return habitLogService.getHabitLogsByDate(date);
     }
 

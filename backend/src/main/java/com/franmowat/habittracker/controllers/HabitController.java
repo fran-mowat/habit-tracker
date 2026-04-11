@@ -1,7 +1,8 @@
 package com.franmowat.habittracker.controllers;
 
-import com.franmowat.habittracker.entities.Habit;
-import com.franmowat.habittracker.entities.HabitLog;
+import com.franmowat.habittracker.DTOs.HabitLogResponse;
+import com.franmowat.habittracker.DTOs.HabitRequest;
+import com.franmowat.habittracker.DTOs.HabitResponse;
 import com.franmowat.habittracker.services.HabitLogService;
 import com.franmowat.habittracker.services.HabitService;
 import org.springframework.web.bind.annotation.*;
@@ -20,29 +21,28 @@ public class HabitController {
     }
 
     @GetMapping("/{id}")
-    public Habit getHabitById(@PathVariable Long id){
-        return habitService.getHabitById(id);
+    public HabitResponse getHabitById(@PathVariable Long id){
+        return habitService.getHabitByIdResponse(id);
     }
 
     @GetMapping("/{id}/logs")
-    public List<HabitLog> getHabitLogsByHabitId(@PathVariable Long id){
+    public List<HabitLogResponse> getHabitLogsByHabitId(@PathVariable Long id){
         return habitLogService.getHabitLogsByHabitId(id);
     }
 
     @PostMapping
-    public Habit createHabit(@RequestBody Habit habit){
-        return habitService.createHabit(habit);
+    public HabitResponse createHabit(@RequestBody HabitRequest habitRequest){
+        return habitService.createHabit(habitRequest);
     }
 
     @PostMapping("/{id}/logs")
-    public HabitLog createHabitLog(@PathVariable Long id){
+    public HabitLogResponse createHabitLog(@PathVariable Long id){
         return habitLogService.createHabitLog(id);
     }
 
     @PutMapping("/{id}")
-    public Habit updateHabit(@PathVariable Long id, @RequestBody Habit habit){
-        habit.setHabitId(id);
-        return habitService.updateHabit(habit);
+    public HabitResponse updateHabit(@PathVariable Long id, @RequestBody HabitRequest habitRequest){
+        return habitService.updateHabit(id, habitRequest);
     }
 
     @DeleteMapping("/{id}")

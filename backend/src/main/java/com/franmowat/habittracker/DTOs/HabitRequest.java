@@ -3,7 +3,9 @@ package com.franmowat.habittracker.DTOs;
 import com.franmowat.habittracker.dataTypes.FrequencyUnit;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import lombok.Data;
 
+@Data
 public class HabitRequest {
     @NotBlank
     private String name;
