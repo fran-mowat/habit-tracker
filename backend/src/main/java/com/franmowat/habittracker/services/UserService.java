@@ -3,21 +3,30 @@ package com.franmowat.habittracker.services;
 import com.franmowat.habittracker.DTOs.UserRequest;
 import com.franmowat.habittracker.DTOs.UserResponse;
 import com.franmowat.habittracker.entities.User;
-import com.franmowat.habittracker.exceptions.DuplicateResourceException;
 import com.franmowat.habittracker.exceptions.UserNotFoundException;
 import com.franmowat.habittracker.mappers.UserMapper;
 import com.franmowat.habittracker.repositories.UserRepository;
+import com.franmowat.habittracker.validation.UserValidationService;
 import jakarta.transaction.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final UserValidationService userValidationService;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, UserMapper userMapper){
+    public UserService(
+            UserRepository userRepository,
+            UserMapper userMapper,
+            UserValidationService userValidationService,
+            PasswordEncoder passwordEncoder){
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.userValidationService = userValidationService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     private User getUserById(Long id) {
@@ -37,54 +46,16 @@ public class UserService {
     }
 
     @Transactional
-    public UserResponse createUser(UserRequest userRequest) {
-        User user = userMapper.toEntity(userRequest);
-
-        String email = user.getEmail();
-        String name = user.getUserNameField();
-        String password = user.getPassword();
-
-        if (name == null || name.isBlank()){
-            throw new IllegalArgumentException("Name field cannot be empty");
-        }
-
-        if (email == null || email.isBlank()){
-            throw new IllegalArgumentException("Email field cannot be empty");
-        }
-
-        if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
-            throw new IllegalArgumentException("Invalid email format");
-        }
-
-        if (userRepository.existsByEmail(email)){
-            throw new DuplicateResourceException("Email " + email + " already in use");
-        }
-
-        validatePassword(password);
-
-        //TO DO: configure password encoder to hash password
-
-        User saved = userRepository.save(user);
-        return userMapper.toResponse(saved);
-    }
-
-    @Transactional
     public UserResponse updateUser(Long id, UserRequest updatedUserRequest) {
         User updatedUser = userMapper.toEntity(updatedUserRequest);
-
         User existingUser = getUserById(id);
 
-        String name = updatedUser.getUserNameField();
         String password = updatedUser.getPassword();
+        userValidationService.validatePassword(password);
+        String hashedPassword = passwordEncoder.encode(password);
 
-        if (name == null || name.isBlank()){
-            throw new IllegalArgumentException("Name field cannot be empty");
-        }
-
-        validatePassword(password);
-
-        existingUser.setUserName(name);
-        existingUser.setPassword(password);
+        existingUser.setUserName(updatedUser.getUserNameField());
+        existingUser.setPassword(hashedPassword);
 
         User saved = userRepository.save(existingUser);
         return userMapper.toResponse(saved);
@@ -96,29 +67,5 @@ public class UserService {
         userRepository.delete(user);
     }
 
-    private void validatePassword(String password){
-        if (password == null || password.length() < 7){
-            throw new IllegalArgumentException("Password field must be longer than 7 characters");
-        }
 
-        if (! password.matches(".*[A-Z].*")){
-            throw new IllegalArgumentException("Password field must contain an uppercase character");
-        }
-
-        if (! password.matches(".*[a-z].*")){
-            throw new IllegalArgumentException("Password field must contain a lowercase character");
-        }
-
-        if (! password.matches(".*[1-9].*")){
-            throw new IllegalArgumentException("Password field must contain a digit");
-        }
-
-        if (! password.matches(".*[^a-zA-Z0-9].*")){
-            throw new IllegalArgumentException("Password field must contain a special character");
-        }
-
-        if (password.contains(" ")){
-            throw new IllegalArgumentException(("Password field cannot contain spaces"));
-        }
-    }
 }
