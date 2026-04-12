@@ -14,12 +14,17 @@ import org.springframework.stereotype.Service;
 public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
 
     private final String TOKEN_TYPE = "Bearer";
 
-    public AuthService(UserRepository userRepository, PasswordEncoder passwordEncoder){
+    public AuthService(
+            UserRepository userRepository,
+            PasswordEncoder passwordEncoder,
+            JwtService jwtService){
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtService = jwtService;
     }
 
     public AuthResponse register(RegisterRequest request){
@@ -37,7 +42,7 @@ public class AuthService {
         userRepository.save(user);
 
         return new AuthResponse(
-                "token", // TO DO: generate JWT token
+                jwtService.generateToken(user),
                 TOKEN_TYPE,
                 user.getUserId(),
                 user.getEmail()
@@ -53,7 +58,7 @@ public class AuthService {
         }
 
         return new AuthResponse(
-                "", //TO DO: generate JWT token
+                jwtService.generateToken(user),
                 TOKEN_TYPE,
                 user.getUserId(),
                 user.getEmail()
