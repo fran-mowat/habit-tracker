@@ -44,11 +44,6 @@ public class UserController {
         return habitLogService.getHabitLogsByUserId(userId);
     }
 
-    @PostMapping
-    public UserResponse createUser(@RequestBody UserRequest userRequest){
-        return userService.createUser(userRequest);
-    }
-
     @PutMapping("/{id}")
     public UserResponse updateUser(@PathVariable Long id, @RequestBody UserRequest userRequest){
         return userService.updateUser(id, userRequest);

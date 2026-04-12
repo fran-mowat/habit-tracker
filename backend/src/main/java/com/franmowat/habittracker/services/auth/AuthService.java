@@ -36,6 +36,7 @@ public class AuthService {
         String hashedPassword = passwordEncoder.encode(request.getPassword());
 
         User user = new User();
+        user.setUserName(request.getUserName());
         user.setEmail(email);
         user.setPassword(hashedPassword);
 

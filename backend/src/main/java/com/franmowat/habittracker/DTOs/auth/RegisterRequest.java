@@ -7,6 +7,9 @@ import lombok.Getter;
 @Getter
 public class RegisterRequest {
     @NotBlank
+    private String userName;
+
+    @NotBlank
     @Email
     private String email;
 
