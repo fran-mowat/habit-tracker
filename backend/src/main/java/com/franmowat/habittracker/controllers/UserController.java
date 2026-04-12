@@ -7,6 +7,7 @@ import com.franmowat.habittracker.DTOs.UserResponse;
 import com.franmowat.habittracker.services.HabitLogService;
 import com.franmowat.habittracker.services.HabitService;
 import com.franmowat.habittracker.services.UserService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -45,7 +46,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public UserResponse updateUser(@PathVariable Long id, @RequestBody UserRequest userRequest){
+    public UserResponse updateUser(@PathVariable Long id, @Valid @RequestBody UserRequest userRequest){
         return userService.updateUser(id, userRequest);
     }
 

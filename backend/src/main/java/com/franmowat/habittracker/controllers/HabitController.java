@@ -5,6 +5,7 @@ import com.franmowat.habittracker.DTOs.HabitRequest;
 import com.franmowat.habittracker.DTOs.HabitResponse;
 import com.franmowat.habittracker.services.HabitLogService;
 import com.franmowat.habittracker.services.HabitService;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,7 +32,7 @@ public class HabitController {
     }
 
     @PostMapping
-    public HabitResponse createHabit(@RequestBody HabitRequest habitRequest){
+    public HabitResponse createHabit(@Valid @RequestBody HabitRequest habitRequest){
         return habitService.createHabit(habitRequest);
     }
 
@@ -41,7 +42,7 @@ public class HabitController {
     }
 
     @PutMapping("/{id}")
-    public HabitResponse updateHabit(@PathVariable Long id, @RequestBody HabitRequest habitRequest){
+    public HabitResponse updateHabit(@PathVariable Long id, @Valid @RequestBody HabitRequest habitRequest){
         return habitService.updateHabit(id, habitRequest);
     }
 
