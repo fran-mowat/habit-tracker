@@ -41,7 +41,7 @@ public class UserService {
         User user = userMapper.toEntity(userRequest);
 
         String email = user.getEmail();
-        String name = user.getUserName();
+        String name = user.getUserNameField();
         String password = user.getPassword();
 
         if (name == null || name.isBlank()){
@@ -74,7 +74,7 @@ public class UserService {
 
         User existingUser = getUserById(id);
 
-        String name = updatedUser.getUserName();
+        String name = updatedUser.getUserNameField();
         String password = updatedUser.getPassword();
 
         if (name == null || name.isBlank()){

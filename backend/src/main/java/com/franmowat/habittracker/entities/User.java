@@ -26,6 +26,10 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    public String getUserNameField(){
+        return this.userName;
+    }
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.emptyList();
