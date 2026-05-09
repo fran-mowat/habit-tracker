@@ -47,17 +47,15 @@ public class UserService {
 
     @Transactional
     public UserResponse updateUser(Long id, UserRequest updatedUserRequest) {
-        User updatedUser = userMapper.toEntity(updatedUserRequest);
-        User existingUser = getUserById(id);
+        User user = getUserById(id);
+        userMapper.updateEntity(user, updatedUserRequest);
 
-        String password = updatedUser.getPassword();
+        String password = updatedUserRequest.getPassword();
         userValidationService.validatePassword(password);
         String hashedPassword = passwordEncoder.encode(password);
+        user.setPassword(hashedPassword);
 
-        existingUser.setUserName(updatedUser.getUserNameField());
-        existingUser.setPassword(hashedPassword);
-
-        User saved = userRepository.save(existingUser);
+        User saved = userRepository.save(user);
         return userMapper.toResponse(saved);
     }
 
