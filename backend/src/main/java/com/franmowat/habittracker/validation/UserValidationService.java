@@ -1,5 +1,8 @@
 package com.franmowat.habittracker.validation;
 
+import org.springframework.stereotype.Service;
+
+@Service
 public class UserValidationService {
     public void validateEmail(String email){
         if (!email.matches("^[A-Za-z0-9+_.-]+@(.+)$")) {
