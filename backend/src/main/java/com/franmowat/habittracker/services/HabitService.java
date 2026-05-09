@@ -23,6 +23,11 @@ public class HabitService {
         this.habitMapper = habitMapper;
     }
 
+    public List<HabitResponse> getAllHabits(){
+        List<Habit> habits = habitRepository.findAll();
+        return habitMapper.toResponseList(habits);
+    }
+
     public Habit getHabitById(Long id){
         return habitRepository.findById(id)
                 .orElseThrow(() -> new HabitNotFoundException("Habit not found with id " + id));

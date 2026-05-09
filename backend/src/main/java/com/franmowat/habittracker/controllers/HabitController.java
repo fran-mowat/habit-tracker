@@ -21,6 +21,11 @@ public class HabitController {
         this.habitLogService = habitLogService;
     }
 
+    @GetMapping
+    public List<HabitResponse> getAllHabits(){
+        return habitService.getAllHabits();
+    }
+
     @GetMapping("/{id}")
     public HabitResponse getHabitById(@PathVariable Long id){
         return habitService.getHabitByIdResponse(id);
