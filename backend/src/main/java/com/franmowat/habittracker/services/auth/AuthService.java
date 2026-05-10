@@ -3,10 +3,13 @@ package com.franmowat.habittracker.services.auth;
 import com.franmowat.habittracker.DTOs.auth.*;
 import com.franmowat.habittracker.entities.User;
 import com.franmowat.habittracker.exceptions.DuplicateResourceException;
+import com.franmowat.habittracker.exceptions.UserNotFoundException;
 import com.franmowat.habittracker.repositories.UserRepository;
 import com.franmowat.habittracker.validation.UserValidationService;
 import jakarta.transaction.Transactional;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -32,18 +35,18 @@ public class AuthService {
 
     @Transactional
     public AuthResponse register(RegisterRequest request){
+        String userName = request.getUserName();
+        userValidationService.validateUserName(userName);
+
         String email = request.getEmail();
         userValidationService.validateEmail(email);
-        if (userRepository.existsByEmail(email)){
-            throw new DuplicateResourceException("Email " + email + " already in use");
-        }
 
         String password = request.getPassword();
         userValidationService.validatePassword(password);
         String hashedPassword = passwordEncoder.encode(password);
 
         User user = new User();
-        user.setUserName(request.getUserName());
+        user.setUserName(userName);
         user.setEmail(email);
         user.setPassword(hashedPassword);
 
@@ -71,5 +74,13 @@ public class AuthService {
                 user.getUserId(),
                 user.getEmail()
         );
+    }
+
+    public User getAuthenticatedUser(){
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String userId = authentication.getName();
+
+        return userRepository.findById(Long.valueOf(userId))
+                .orElseThrow(() -> new UserNotFoundException("User not found with id " + userId));
     }
 }

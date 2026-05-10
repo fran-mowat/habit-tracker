@@ -3,10 +3,12 @@ package com.franmowat.habittracker.services;
 import com.franmowat.habittracker.DTOs.HabitLogResponse;
 import com.franmowat.habittracker.entities.Habit;
 import com.franmowat.habittracker.entities.HabitLog;
+import com.franmowat.habittracker.entities.User;
 import com.franmowat.habittracker.exceptions.DuplicateResourceException;
 import com.franmowat.habittracker.exceptions.HabitLogNotFoundException;
 import com.franmowat.habittracker.mappers.HabitLogMapper;
 import com.franmowat.habittracker.repositories.HabitLogRepository;
+import com.franmowat.habittracker.services.auth.AuthService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
@@ -19,20 +21,30 @@ public class HabitLogService {
     private final HabitLogRepository habitLogRepository;
     private final HabitService habitService;
     private final HabitLogMapper habitLogMapper;
+    private final AuthService authService;
 
     public HabitLogService(
             HabitLogRepository habitLogRepository,
             HabitService habitService,
-            HabitLogMapper habitLogMapper
+            HabitLogMapper habitLogMapper,
+            AuthService authService
     ){
         this.habitLogRepository = habitLogRepository;
         this.habitService = habitService;
         this.habitLogMapper = habitLogMapper;
+        this.authService = authService;
     }
 
     private HabitLog getHabitLogById(Long id){
-        return habitLogRepository.findById(id)
-                .orElseThrow(() -> new HabitLogNotFoundException("Habit log not found with id " + id));
+        User user = authService.getAuthenticatedUser();
+        HabitLog habitLog = habitLogRepository.findById(id)
+                .orElseThrow(() -> new HabitLogNotFoundException("Habit log not found with id " + id));;
+
+        if (!habitLog.getHabit().getUser().getUserId().equals(user.getUserId())){
+            throw new HabitLogNotFoundException("Habit log not found with id " + id);
+        }
+
+        return habitLog;
     }
 
     public HabitLogResponse getHabitLogByIdResponse(Long id){
@@ -40,18 +52,25 @@ public class HabitLogService {
         return habitLogMapper.toResponse(habitLog);
     }
 
-    public List<HabitLogResponse> getHabitLogsByUserId(Long id){
-        List<HabitLog> habitLogs = habitLogRepository.findByHabit_User_UserId(id);
+    public List<HabitLogResponse> getAllHabitLogs(){
+        User user = authService.getAuthenticatedUser();
+        List<HabitLog> habitLogs = habitLogRepository.findByHabit_User_UserId(user.getUserId());
         return habitLogMapper.toResponseList(habitLogs);
     }
 
     public List<HabitLogResponse> getHabitLogsByHabitId(Long id){
-        List<HabitLog> habitLogs = habitLogRepository.findByHabit_HabitId(id);
+        Habit habit = habitService.getHabitById(id);
+
+        List<HabitLog> habitLogs =
+                habitLogRepository.findByHabit_HabitId(habit.getHabitId());
+
         return habitLogMapper.toResponseList(habitLogs);
     }
 
     public List<HabitLogResponse> getHabitLogsByDate(LocalDate date){
-        List<HabitLog> habitLogs = habitLogRepository.findByDateCompletedBetween(
+        User user = authService.getAuthenticatedUser();
+        List<HabitLog> habitLogs = habitLogRepository.findByHabit_User_UserIdAndDateCompletedBetween(
+                user.getUserId(),
                 date.atStartOfDay(),
                 date.atTime(23, 59, 59)
         );

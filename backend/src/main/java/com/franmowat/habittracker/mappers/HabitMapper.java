@@ -9,6 +9,12 @@ import java.util.List;
 
 @Component
 public class HabitMapper {
+    private final UserMapper userMapper;
+
+    public HabitMapper(UserMapper userMapper){
+        this.userMapper = userMapper;
+    }
+
     public Habit toEntity(HabitRequest habitRequest){
         Habit habit = new Habit();
 
@@ -23,14 +29,13 @@ public class HabitMapper {
     public HabitResponse toResponse(Habit habit){
         HabitResponse habitResponse = new HabitResponse();
 
-        habitResponse.setHabitId(habit.getHabitId());
         habitResponse.setName(habit.getName());
         habitResponse.setDescription(habit.getDescription());
         habitResponse.setFrequencyUnit(habit.getFrequencyUnit());
         habitResponse.setFrequencyInterval(habit.getFrequencyInterval());
         habitResponse.setFrequencyMetadata(habit.getFrequencyMetadata());
         habitResponse.setCreatedAt(habit.getCreatedAt());
-        habitResponse.setUserId(habit.getUser().getUserId());
+        habitResponse.setUser(userMapper.toResponse(habit.getUser()));
         return habitResponse;
     }
 

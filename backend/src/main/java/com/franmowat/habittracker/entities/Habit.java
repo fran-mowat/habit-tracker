@@ -28,7 +28,7 @@ public class Habit {
     private FrequencyUnit frequencyUnit;
 
     @Column(nullable = false)
-    private int frequencyInterval;
+    private Integer frequencyInterval;
 
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")

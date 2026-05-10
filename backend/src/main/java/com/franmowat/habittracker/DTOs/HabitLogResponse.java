@@ -6,8 +6,6 @@ import java.time.LocalDateTime;
 
 @Data
 public class HabitLogResponse {
-    private Long habitLogId;
     private LocalDateTime dateCompleted;
-    private Long habitId;
-    private Long userId;
+    private HabitResponse habitResponse;
 }

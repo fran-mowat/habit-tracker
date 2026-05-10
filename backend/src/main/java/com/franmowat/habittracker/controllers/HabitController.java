@@ -3,6 +3,7 @@ package com.franmowat.habittracker.controllers;
 import com.franmowat.habittracker.DTOs.HabitLogResponse;
 import com.franmowat.habittracker.DTOs.HabitRequest;
 import com.franmowat.habittracker.DTOs.HabitResponse;
+import com.franmowat.habittracker.DTOs.HabitUpdateRequest;
 import com.franmowat.habittracker.services.HabitLogService;
 import com.franmowat.habittracker.services.HabitService;
 import jakarta.validation.Valid;
@@ -47,7 +48,7 @@ public class HabitController {
     }
 
     @PutMapping("/{id}")
-    public HabitResponse updateHabit(@PathVariable Long id, @Valid @RequestBody HabitRequest habitRequest){
+    public HabitResponse updateHabit(@PathVariable Long id, @Valid @RequestBody HabitUpdateRequest habitRequest){
         return habitService.updateHabit(id, habitRequest);
     }
 

@@ -8,13 +8,19 @@ import java.util.List;
 
 @Component
 public class HabitLogMapper {
+    private final UserMapper userMapper;
+    private final HabitMapper habitMapper;
+
+    public HabitLogMapper(UserMapper userMapper, HabitMapper habitMapper){
+        this.userMapper = userMapper;
+        this.habitMapper = habitMapper;
+    }
+
     public HabitLogResponse toResponse(HabitLog habitLog){
         HabitLogResponse habitLogResponse = new HabitLogResponse();
 
-        habitLogResponse.setHabitLogId(habitLog.getHabitLogId());
         habitLogResponse.setDateCompleted(habitLog.getDateCompleted());
-        habitLogResponse.setHabitId(habitLog.getHabit().getHabitId());
-        habitLogResponse.setUserId(habitLog.getHabit().getUser().getUserId());
+        habitLogResponse.setHabitResponse(habitMapper.toResponse(habitLog.getHabit()));
         return habitLogResponse;
     }
 

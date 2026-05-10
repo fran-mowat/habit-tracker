@@ -2,6 +2,7 @@ package com.franmowat.habittracker.services;
 
 import com.franmowat.habittracker.DTOs.HabitRequest;
 import com.franmowat.habittracker.DTOs.HabitResponse;
+import com.franmowat.habittracker.DTOs.HabitUpdateRequest;
 import com.franmowat.habittracker.dataTypes.FrequencyUnit;
 import com.franmowat.habittracker.entities.Habit;
 import com.franmowat.habittracker.entities.User;
@@ -9,30 +10,32 @@ import com.franmowat.habittracker.exceptions.DuplicateResourceException;
 import com.franmowat.habittracker.exceptions.HabitNotFoundException;
 import com.franmowat.habittracker.mappers.HabitMapper;
 import com.franmowat.habittracker.repositories.HabitRepository;
+import com.franmowat.habittracker.services.auth.AuthService;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class HabitService {
-    private final UserService userService;
     private final HabitRepository habitRepository;
     private final HabitMapper habitMapper;
+    private final AuthService authService;
 
-    public HabitService(UserService userService, HabitRepository habitRepository, HabitMapper habitMapper){
-        this.userService = userService;
+    public HabitService(
+            HabitRepository habitRepository,
+            HabitMapper habitMapper,
+            AuthService authService){
         this.habitRepository = habitRepository;
         this.habitMapper = habitMapper;
-    }
-
-    public List<HabitResponse> getAllHabits(){
-        List<Habit> habits = habitRepository.findAll();
-        return habitMapper.toResponseList(habits);
+        this.authService = authService;
     }
 
     public Habit getHabitById(Long id){
-        return habitRepository.findById(id)
+        User user = authService.getAuthenticatedUser();
+        return habitRepository
+                .findByHabitIdAndUser_UserId(id, user.getUserId())
                 .orElseThrow(() -> new HabitNotFoundException("Habit not found with id " + id));
     }
 
@@ -41,8 +44,9 @@ public class HabitService {
         return habitMapper.toResponse(habit);
     }
 
-    public List<HabitResponse> getHabitsByUserId(Long id){
-        List<Habit> habits = habitRepository.findByUser_UserId(id);
+    public List<HabitResponse> getAllHabits(){
+        User user = authService.getAuthenticatedUser();
+        List<Habit> habits = habitRepository.findByUser_UserId(user.getUserId());
         return habitMapper.toResponseList(habits);
     }
 
@@ -50,66 +54,53 @@ public class HabitService {
     public HabitResponse createHabit(HabitRequest habitRequest){
         Habit habit = habitMapper.toEntity(habitRequest);
 
-        String habitName = habit.getName();
-        FrequencyUnit frequencyUnit = habit.getFrequencyUnit();
-        int frequencyInterval = habit.getFrequencyInterval();
-
-        User user = userService.getUserById(habitRequest.getUserId());
+        User user = authService.getAuthenticatedUser();
         habit.setUser(user);
 
-        if (habitName == null || habitName.isBlank() ){
-            throw new IllegalArgumentException("Habit name field cannot be empty");
-        }
-
-        if (habitRepository.existsByUser_UserIdAndName(user.getUserId(), habitName)){
-            throw new DuplicateResourceException("Habit " + habitName + " already exists for user " + user.getUserId());
-        }
-
-        if (frequencyUnit == null){
-            throw new IllegalArgumentException("Frequency unit field cannot be null");
-        }
-
-        if (frequencyInterval < 1){
-            throw new IllegalArgumentException("Frequency interval field cannot be less than 1");
-        }
+        validateHabitName(habit.getName(), user.getUserId(), null);
+        validateDescription(habit.getDescription());
+        validateFrequencyUnit(habit.getFrequencyUnit());
+        validateFrequencyInterval(habit.getFrequencyInterval());
+        validateFrequencyMetadata(habit.getFrequencyMetadata());
 
         Habit saved = habitRepository.save(habit);
         return habitMapper.toResponse(saved);
     }
 
     @Transactional
-    public HabitResponse updateHabit(Long id, HabitRequest updatedHabitRequest){
-        Habit updatedHabit = habitMapper.toEntity(updatedHabitRequest);
-
+    public HabitResponse updateHabit(Long id, HabitUpdateRequest updatedHabitRequest){
         Habit existingHabit = getHabitById(id);
-
-        String habitName = updatedHabit.getName();
-        FrequencyUnit frequencyUnit = updatedHabit.getFrequencyUnit();
-        int frequencyInterval = updatedHabit.getFrequencyInterval();
         Long userId = existingHabit.getUser().getUserId();
 
-        if (habitName == null || habitName.isBlank() ){
-            throw new IllegalArgumentException("Habit name field cannot be empty");
+        String habitName = updatedHabitRequest.getName();
+        if (habitName != null){
+            validateHabitName(habitName, userId, existingHabit.getName());
+            existingHabit.setName(habitName);
         }
 
-        boolean nameExists = habitRepository.existsByUser_UserIdAndName(userId, habitName);
-        if (nameExists && !existingHabit.getName().equals(habitName)){
-            throw new DuplicateResourceException("Habit " + habitName + " already exists for user " + userId);
+        String description = updatedHabitRequest.getDescription();
+        if (description != null){
+            validateDescription(description);
+            existingHabit.setDescription(description);
         }
 
-        if (frequencyUnit == null){
-            throw new IllegalArgumentException("Frequency unit field cannot be null");
+        FrequencyUnit frequencyUnit = updatedHabitRequest.getFrequencyUnit();
+        if (frequencyUnit != null) {
+            validateFrequencyUnit(frequencyUnit);
+            existingHabit.setFrequencyUnit(frequencyUnit);
         }
 
-        if (frequencyInterval < 1){
-            throw new IllegalArgumentException("Frequency interval field cannot be less than 1");
+        Integer frequencyInterval = updatedHabitRequest.getFrequencyInterval();
+        if (frequencyInterval != null) {
+            validateFrequencyInterval(frequencyInterval);
+            existingHabit.setFrequencyInterval(frequencyInterval);
         }
 
-        existingHabit.setName(habitName);
-        existingHabit.setDescription(updatedHabit.getDescription());
-        existingHabit.setFrequencyUnit(frequencyUnit);
-        existingHabit.setFrequencyInterval(frequencyInterval);
-        existingHabit.setFrequencyMetadata(updatedHabit.getFrequencyMetadata());
+        Map<String, Object> frequencyMetadata = updatedHabitRequest.getFrequencyMetadata();
+        if (frequencyMetadata != null){
+            validateFrequencyMetadata(frequencyMetadata);
+            existingHabit.setFrequencyMetadata(frequencyMetadata);
+        }
 
         Habit saved = habitRepository.save(existingHabit);
         return habitMapper.toResponse(saved);
@@ -119,5 +110,43 @@ public class HabitService {
     public void deleteHabit(Long id){
         Habit habit = getHabitById(id);
         habitRepository.delete(habit);
+    }
+
+    private void validateHabitName(String habitName, Long userId, String existingHabitName){
+        if (habitName.length() < 3){
+            throw new IllegalArgumentException("Habit name field must be longer than 3 characters");
+        }
+
+        boolean nameExists = habitRepository.existsByUser_UserIdAndName(userId, habitName);
+
+        if (existingHabitName != null){
+            if (nameExists && !existingHabitName.equals(habitName)){
+                throw new DuplicateResourceException("Habit " + habitName + " already exists");
+            }
+        } else {
+            if (nameExists){
+                throw new DuplicateResourceException("Habit " + habitName + " already exists");
+            }
+        }
+    }
+
+    private void validateDescription(String description){
+        if (description != null && !(description.isEmpty()) && description.length() < 5){
+            throw new IllegalArgumentException("Habit name field must be longer than 5 characters");
+        }
+    }
+
+    private void validateFrequencyUnit(FrequencyUnit frequencyUnit){
+        //TO DO: define frequency unit validations
+    }
+
+    private void validateFrequencyInterval(Integer frequencyInterval){
+        if (frequencyInterval < 1){
+            throw new IllegalArgumentException("Frequency interval field cannot be less than 1");
+        }
+    }
+
+    private void validateFrequencyMetadata(Map<String, Object> frequencyMetadata){
+        //TO DO: define frequency metadata validations
     }
 }

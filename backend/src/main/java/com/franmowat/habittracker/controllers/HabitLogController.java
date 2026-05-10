@@ -16,12 +16,17 @@ public class HabitLogController {
         this.habitLogService = habitLogService;
     }
 
+    @GetMapping
+    public List<HabitLogResponse> getAllHabitLogs(){
+        return habitLogService.getAllHabitLogs();
+    }
+
     @GetMapping("/{id}")
     public HabitLogResponse getHabitLog(@PathVariable Long id){
         return habitLogService.getHabitLogByIdResponse(id);
     }
 
-    @GetMapping
+    @GetMapping("/date")
     public List<HabitLogResponse> getHabitLogsByDate(@RequestParam LocalDate date){
         return habitLogService.getHabitLogsByDate(date);
     }
