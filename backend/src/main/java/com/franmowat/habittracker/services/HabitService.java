@@ -4,6 +4,7 @@ import com.franmowat.habittracker.DTOs.HabitRequest;
 import com.franmowat.habittracker.DTOs.HabitResponse;
 import com.franmowat.habittracker.dataTypes.FrequencyUnit;
 import com.franmowat.habittracker.entities.Habit;
+import com.franmowat.habittracker.entities.User;
 import com.franmowat.habittracker.exceptions.DuplicateResourceException;
 import com.franmowat.habittracker.exceptions.HabitNotFoundException;
 import com.franmowat.habittracker.mappers.HabitMapper;
@@ -15,10 +16,12 @@ import java.util.List;
 
 @Service
 public class HabitService {
+    private final UserService userService;
     private final HabitRepository habitRepository;
     private final HabitMapper habitMapper;
 
-    public HabitService(HabitRepository habitRepository, HabitMapper habitMapper){
+    public HabitService(UserService userService, HabitRepository habitRepository, HabitMapper habitMapper){
+        this.userService = userService;
         this.habitRepository = habitRepository;
         this.habitMapper = habitMapper;
     }
@@ -50,14 +53,16 @@ public class HabitService {
         String habitName = habit.getName();
         FrequencyUnit frequencyUnit = habit.getFrequencyUnit();
         int frequencyInterval = habit.getFrequencyInterval();
-        Long userId = habit.getUser().getUserId();
+
+        User user = userService.getUserById(habitRequest.getUserId());
+        habit.setUser(user);
 
         if (habitName == null || habitName.isBlank() ){
             throw new IllegalArgumentException("Habit name field cannot be empty");
         }
 
-        if (habitRepository.existsByUser_UserIdAndName(userId, habitName)){
-            throw new DuplicateResourceException("Habit " + habitName + " already exists for user " + userId);
+        if (habitRepository.existsByUser_UserIdAndName(user.getUserId(), habitName)){
+            throw new DuplicateResourceException("Habit " + habitName + " already exists for user " + user.getUserId());
         }
 
         if (frequencyUnit == null){
