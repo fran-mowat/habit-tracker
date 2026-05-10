@@ -3,8 +3,11 @@ package com.franmowat.habittracker.entities;
 import com.franmowat.habittracker.dataTypes.FrequencyUnit;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Data
 @Entity
@@ -27,8 +30,9 @@ public class Habit {
     @Column(nullable = false)
     private int frequencyInterval;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(columnDefinition = "jsonb")
-    private String frequencyMetadata;
+    private Map<String, Object> frequencyMetadata;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;

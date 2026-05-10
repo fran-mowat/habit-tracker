@@ -3,7 +3,10 @@ package com.franmowat.habittracker.DTOs;
 import com.franmowat.habittracker.dataTypes.FrequencyUnit;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+
+import java.util.Map;
 
 @Data
 public class HabitRequest {
@@ -12,15 +15,15 @@ public class HabitRequest {
 
     private String description;
 
-    @NotBlank
+    @NotNull
     private FrequencyUnit frequencyUnit;
 
     @Min(1)
-    @NotBlank
+    @NotNull
     private int frequencyInterval;
 
-    private String frequencyMetadata;
+    private Map<String, Object> frequencyMetadata;
 
-    @NotBlank
+    @NotNull
     private Long userId;
 }

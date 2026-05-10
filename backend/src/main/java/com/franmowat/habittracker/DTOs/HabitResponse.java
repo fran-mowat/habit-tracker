@@ -4,6 +4,7 @@ import com.franmowat.habittracker.dataTypes.FrequencyUnit;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Data
 public class HabitResponse {
@@ -12,7 +13,7 @@ public class HabitResponse {
     private String description;
     private FrequencyUnit frequencyUnit;
     private int frequencyInterval;
-    private String frequencyMetadata;
+    private Map<String, Object> frequencyMetadata;
     private LocalDateTime createdAt;
     private Long userId;
 }
